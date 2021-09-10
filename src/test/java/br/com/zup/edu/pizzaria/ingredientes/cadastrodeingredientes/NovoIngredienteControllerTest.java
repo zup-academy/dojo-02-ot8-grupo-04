@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import javax.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -47,19 +48,21 @@ class NovoIngredienteControllerTest {
 
     }
 
-
-
     @Test
     void naoDeveCadastrarIngredienteComValorNegativo() throws Exception {
 
         NovoIngredienteRequest body = new NovoIngredienteRequest("Queijo muçarela", new BigDecimal("-2.0"), 200);
         MockHttpServletRequestBuilder request = post("/api/ingredientes")
+                .locale(new Locale("pt", "BR"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(new ObjectMapper().writeValueAsString(body));
 
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.error").exists());
+                .andExpect(MockMvcResultMatchers.jsonPath("$.campo").value("preco"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.mensagem").value("deve ser maior que 0"))
+                .andReturn().getResponse();
+
     }
 
 
