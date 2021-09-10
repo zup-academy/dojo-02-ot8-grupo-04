@@ -49,6 +49,32 @@ class NovoIngredienteControllerTest {
     }
 
     @Test
+    void naoDeveCadastrarNovoIngredienteSemNome() throws Exception {
+
+        NovoIngredienteRequest body = new NovoIngredienteRequest("", new BigDecimal("2.0"), 200);
+        MockHttpServletRequestBuilder request = post("/api/ingredientes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(body));
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    void naoDeveCadastrarNovoIngredientePrecoZero() throws Exception {
+
+        NovoIngredienteRequest body = new NovoIngredienteRequest("Queijo muçarela", new BigDecimal("0.0"), 200);
+        MockHttpServletRequestBuilder request = post("/api/ingredientes")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(body));
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
     void naoDeveCadastrarIngredienteComValorNegativo() throws Exception {
 
         NovoIngredienteRequest body = new NovoIngredienteRequest("Queijo muçarela", new BigDecimal("-2.0"), 200);
@@ -59,12 +85,10 @@ class NovoIngredienteControllerTest {
 
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.campo").value("preco"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.mensagem").value("deve ser maior que 0"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].campo").value("preco"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("deve ser maior que 0"))
                 .andReturn().getResponse();
 
     }
-
-
 
 }
