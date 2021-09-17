@@ -13,11 +13,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import javax.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,8 +63,9 @@ class NovaPizzaControllerTest {
                 .content(new ObjectMapper().writeValueAsString(novaPizzaRequest));
 
         mvc.perform(request)
-                .andExpect(status().isOk());
-
+                .andExpect(status().isCreated())
+                .andExpect(header().exists("Location"))
+                .andExpect(redirectedUrlPattern("/api/pizzas/{id}"));
     }
 
 
@@ -79,6 +83,23 @@ class NovaPizzaControllerTest {
 
     }
 
+    @Test
+    public void naoDeveCadastrarSemSabor() throws Exception {
+
+        ingredientes = ingredienteRepository.saveAll(ingredientes);
+        var ingredientesLista = ingredientes.stream().map(Ingrediente::getId).collect(Collectors.toList());
+
+        NovaPizzaRequest novaPizzaRequest = new NovaPizzaRequest("", ingredientesLista);
+        MockHttpServletRequestBuilder request = post("/api/pizzas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(novaPizzaRequest)).locale(new Locale("pt","BR"));
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].campo").value("sabor"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("não deve estar em branco"));
+    }
 }
 
 

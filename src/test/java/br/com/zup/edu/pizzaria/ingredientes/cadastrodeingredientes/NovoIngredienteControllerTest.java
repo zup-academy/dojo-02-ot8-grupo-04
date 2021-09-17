@@ -44,7 +44,7 @@ class NovoIngredienteControllerTest {
         mvc.perform(request)
            .andExpect(status().isCreated())
            .andExpect(header().exists("Location"))
-                .andExpect(redirectedUrlPattern("/api/ingredientes/*"));
+                .andExpect(redirectedUrlPattern("/api/ingredientes/{id}"));
 
     }
 
@@ -86,8 +86,7 @@ class NovoIngredienteControllerTest {
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].campo").value("preco"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("deve ser maior que 0"))
-                .andReturn().getResponse();
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("deve ser maior que 0"));
 
     }
 
