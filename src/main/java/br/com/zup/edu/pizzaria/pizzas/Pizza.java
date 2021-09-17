@@ -5,6 +5,7 @@ import br.com.zup.edu.pizzaria.ingredientes.Ingrediente;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Entity
@@ -39,11 +40,12 @@ public class Pizza {
     }
 
     private void calcularPreco() {
-        this.preco.add(PRECO_MASSA);
-        this.preco.add(PRECO_MAO_DE_OBRA);
-        this.ingredientes.stream()
-                .map(Ingrediente::getPreco)
-                .forEach(preco::add);
+      this.preco = preco.add(PRECO_MASSA);
+      this.preco = preco.add(PRECO_MAO_DE_OBRA);
+
+      for (Ingrediente ingrediente : ingredientes) {
+          this.preco = preco.add(ingrediente.getPreco());
+      }
     }
 
     public Long getId() {
@@ -52,13 +54,5 @@ public class Pizza {
 
     public BigDecimal getPreco() {
         return preco;
-    }
-
-    public String getSabor() {
-        return sabor;
-    }
-
-    public List<Ingrediente> getIngredientes() {
-        return ingredientes;
     }
 }

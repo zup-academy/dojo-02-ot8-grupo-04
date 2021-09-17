@@ -2,9 +2,7 @@ package br.com.zup.edu.pizzaria.pizzas.cadastropizza;
 
 import br.com.zup.edu.pizzaria.ingredientes.Ingrediente;
 import br.com.zup.edu.pizzaria.ingredientes.IngredienteRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.aspectj.weaver.ast.Var;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +15,12 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import javax.transaction.Transactional;
-
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -92,7 +89,7 @@ class NovaPizzaControllerTest {
         NovaPizzaRequest novaPizzaRequest = new NovaPizzaRequest("", ingredientesLista);
         MockHttpServletRequestBuilder request = post("/api/pizzas")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(novaPizzaRequest)).locale(new Locale("pt","BR"));
+                .content(new ObjectMapper().writeValueAsString(novaPizzaRequest)).locale(new Locale("pt", "BR"));
 
         mvc.perform(request)
                 .andExpect(status().isBadRequest())
@@ -100,6 +97,24 @@ class NovaPizzaControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].campo").value("sabor"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("não deve estar em branco"));
     }
+
+    @Test
+    public void naoDeveCadastrarSemIngrediente1() throws Exception {
+        NovaPizzaRequest novaPizzaRequest = new NovaPizzaRequest("Pizza de Ovo", new ArrayList<>());
+
+
+        MockHttpServletRequestBuilder request = post("/api/pizzas")
+                .contentType(MediaType.APPLICATION_JSON)
+                .locale(new Locale("pt", "BR"))
+                .content(new ObjectMapper().writeValueAsString(novaPizzaRequest));
+
+        mvc.perform(request)
+                .andExpect(status().isBadRequest())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].campo").value("ingredientes"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("tamanho deve ser entre 1 e 2147483647"));
+    }
+
 }
 
 
