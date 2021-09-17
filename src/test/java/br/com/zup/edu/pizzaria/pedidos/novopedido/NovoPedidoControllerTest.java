@@ -2,6 +2,7 @@ package br.com.zup.edu.pizzaria.pedidos.novopedido;
 
 import br.com.zup.edu.pizzaria.ingredientes.Ingrediente;
 import br.com.zup.edu.pizzaria.ingredientes.IngredienteRepository;
+import br.com.zup.edu.pizzaria.pedidos.TipoDeBorda;
 import br.com.zup.edu.pizzaria.pizzas.Pizza;
 import br.com.zup.edu.pizzaria.pizzas.PizzaRepository;
 import br.com.zup.edu.pizzaria.pizzas.cadastropizza.NovaPizzaRequest;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import javax.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,14 +52,23 @@ class NovoPedidoControllerTest {
         ingredienteRepository.saveAll(List.of(ingrediente1, ingrediente));
 
 
-        Pizza pizza = new Pizza("Ovo", new BigDecimal("20.0"), List.of(ingrediente1, ingrediente));
+        Pizza pizza = new Pizza("Ovo", List.of(ingrediente1, ingrediente));
+        Pizza pizza1 = new Pizza("Morango", List.of(ingrediente1, ingrediente));
 
 
+        pizzaRepository.saveAll(List.of(pizza, pizza1));
+
+        EnderecoRequest enderecoRequest = new EnderecoRequest("Rua dois", "9","lote 2", "89000000" );
+
+        ItemRequest itemRequest = new ItemRequest(pizza.getId(), TipoDeBorda.RECHEADA_CATUPIRY);
+        ItemRequest itemRequest1 = new ItemRequest(pizza1.getId(), TipoDeBorda.RECHEADA_CHEDDAR);
+
+            NovoPedidoRequest pedidoRequest = new NovoPedidoRequest(enderecoRequest, List.of(itemRequest,itemRequest1));
 
 
         MockHttpServletRequestBuilder request = post("/api/pedidos")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(new ObjectMapper().writeValueAsString(novaPizzaRequest));
+                .content(new ObjectMapper().writeValueAsString(pedidoRequest));
 
         mvc.perform(request)
                 .andExpect(status().isCreated())

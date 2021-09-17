@@ -15,10 +15,23 @@ public class ItemRequest {
     private TipoDeBorda borda;
 
 
+    public ItemRequest(Long pizzaId, TipoDeBorda borda) {
+        this.pizzaId = pizzaId;
+        this.borda = borda;
+    }
+
     public Item paraItem(Pedido pedido, PizzaRepository repository) {
 
         Optional<Pizza> possivelPizza = repository.findById(pizzaId);
 
         return new Item(pedido, borda, possivelPizza.get());
+    }
+
+    public Long getPizzaId() {
+        return pizzaId;
+    }
+
+    public TipoDeBorda getBorda() {
+        return borda;
     }
 }
