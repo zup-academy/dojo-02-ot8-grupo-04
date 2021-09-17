@@ -16,16 +16,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import javax.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -63,7 +67,7 @@ class NovoPedidoControllerTest {
         ItemRequest itemRequest = new ItemRequest(pizza.getId(), TipoDeBorda.RECHEADA_CATUPIRY);
         ItemRequest itemRequest1 = new ItemRequest(pizza1.getId(), TipoDeBorda.RECHEADA_CHEDDAR);
 
-            NovoPedidoRequest pedidoRequest = new NovoPedidoRequest(enderecoRequest, List.of(itemRequest,itemRequest1));
+        NovoPedidoRequest pedidoRequest = new NovoPedidoRequest(enderecoRequest, List.of(itemRequest,itemRequest1));
 
 
         MockHttpServletRequestBuilder request = post("/api/pedidos")
@@ -74,6 +78,74 @@ class NovoPedidoControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().exists("Location"))
                 .andExpect(redirectedUrlPattern("/api/pedidos/{id}"));
+    }
+
+    @Test
+    @DisplayName("Cadastro Pedido sem itens")
+    public void cadastroPedidoSemItens() throws Exception {
+
+        Ingrediente ingrediente = new Ingrediente("Ovo", 1, new BigDecimal("1.0"));
+        Ingrediente ingrediente1 = new Ingrediente("Tomate", 1, new BigDecimal("1.0"));
+        ingredienteRepository.saveAll(List.of(ingrediente1, ingrediente));
+
+
+        Pizza pizza = new Pizza("Ovo", List.of(ingrediente1, ingrediente));
+        Pizza pizza1 = new Pizza("Morango", List.of(ingrediente1, ingrediente));
+
+
+        pizzaRepository.saveAll(List.of(pizza, pizza1));
+
+        EnderecoRequest enderecoRequest = new EnderecoRequest("Rua dois", "9","lote 2", "89000000" );
+
+        NovoPedidoRequest pedidoRequest = new NovoPedidoRequest(enderecoRequest, null);
+
+
+        MockHttpServletRequestBuilder request = post("/api/pedidos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(pedidoRequest))
+                .locale(new Locale("pt","BR"));
+
+        mvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].campo").value("itens"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("não deve ser nulo"));
+
+    }
+
+    @Test
+    @DisplayName("Cadastro Pedido sem Endereco")
+    public void cadastroPedidoSemEndereco() throws Exception {
+
+        Ingrediente ingrediente = new Ingrediente("Ovo", 1, new BigDecimal("1.0"));
+        Ingrediente ingrediente1 = new Ingrediente("Tomate", 1, new BigDecimal("1.0"));
+        ingredienteRepository.saveAll(List.of(ingrediente1, ingrediente));
+
+
+        Pizza pizza = new Pizza("Ovo", List.of(ingrediente1, ingrediente));
+        Pizza pizza1 = new Pizza("Morango", List.of(ingrediente1, ingrediente));
+
+
+        pizzaRepository.saveAll(List.of(pizza, pizza1));
+
+
+        ItemRequest itemRequest = new ItemRequest(pizza.getId(), TipoDeBorda.RECHEADA_CATUPIRY);
+        ItemRequest itemRequest1 = new ItemRequest(pizza1.getId(), TipoDeBorda.RECHEADA_CHEDDAR);
+
+        NovoPedidoRequest pedidoRequest = new NovoPedidoRequest(null, List.of(itemRequest,itemRequest1));
+
+
+        MockHttpServletRequestBuilder request = post("/api/pedidos")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(pedidoRequest))
+                .locale(new Locale("pt","BR"));
+
+        mvc.perform(request)
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].campo").value("endereco"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].mensagem").value("não deve ser nulo"));
+
     }
 
 }
