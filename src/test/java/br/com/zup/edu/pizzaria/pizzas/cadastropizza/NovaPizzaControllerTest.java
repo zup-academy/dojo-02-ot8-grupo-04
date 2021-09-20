@@ -99,7 +99,7 @@ class NovaPizzaControllerTest {
     }
 
     @Test
-    public void naoDeveCadastrarSemIngrediente1() throws Exception {
+    public void naoDeveCadastrarComMenosDeUmIngrediente() throws Exception {
         NovaPizzaRequest novaPizzaRequest = new NovaPizzaRequest("Pizza de Ovo", new ArrayList<>());
 
 
